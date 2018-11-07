@@ -122,11 +122,20 @@ def cleanByFilters():
             else:
                 lines = ""
                 with open(PATH_WORK+os.sep+dirWork+os.sep+FOLDER_ORIGINAL+os.sep+file, "r", encoding='UTF-8') as fO:
-                    for line in fO.readlines():
-                        lines += replaceByFilter(line, file)
-                if lines != "":        
-                    with open(PATH_WORK+os.sep+dirWork+os.sep+FOLDER_CLEAN+os.sep+file+'.unfinish', "a+", encoding='UTF-8') as fC:
-                        fC.write(lines)
+                    linesRead = fO.readlines()
+                    linesWrite = ""
+                    for i in range(len(linesRead)):
+                        linesWrite += replaceByFilter(linesRead[i], file)
+                        if i%10000 == 0 and linesWrite != "":     #隔一段写一次
+                            print('.', end='')
+                            with open(PATH_WORK+os.sep+dirWork+os.sep+FOLDER_CLEAN+os.sep+file+'.unfinish', "a+", encoding='UTF-8') as fC:
+                                fC.write(linesWrite)
+                            linesWrite = ""
+                    if linesWrite != "":   #写完最后一笔  
+                        print('.', end='')
+                        with open(PATH_WORK+os.sep+dirWork+os.sep+FOLDER_CLEAN+os.sep+file+'.unfinish', "a+", encoding='UTF-8') as fC:
+                            fC.write(linesWrite)
+                    print('')        
                     os.rename(PATH_WORK+os.sep+dirWork+os.sep+FOLDER_CLEAN+os.sep+file+'.unfinish', PATH_WORK+os.sep+dirWork+os.sep+FOLDER_CLEAN+os.sep+file)    
 
                         

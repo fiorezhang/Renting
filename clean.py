@@ -7,7 +7,12 @@ PATH_SOURCE = "E:\BigData\Source"
 PATH_WORK = "E:\BigData\Work"
 FOLDER_ORIGINAL = "ORG"
 FOLDER_CLEAN = "CLN"
+
 listCompany = ['58同城', '爱上租', '赶集网', '365淘房', '嗨住租房', '安居客', '青客公寓', '链家', '房天下', '蛋壳公寓', '优客', '107间', '依依短租', '魔方生活', '诸葛找房', '平安好房', '透明家', '楼盘网', '爱屋吉屋', '城市房产', '房产超市', '透明房产网']
+filters = [[1, 4, 6, 7, 8, 9, 10, 12, 13, 15, 16, 17, 18, 19, 20],
+           [1, 4, 6, 7, 8, 9, 10, 11, 13, 15, 16, 17, 18, 19, 20],
+           [1, 4, 6, 7, 8, 9, 10, 14, 15, 17, 18, 19, 20, 21, 22],
+           [1, 4, 6, 7, 8, 9, 10, 12, 14, 16, 17, 18, 19, 20, 21]]
 
 #TODO： log重定向
 #TODO: 该提取的还是提取出来，不合理的部分到时候可以列出来。
@@ -34,6 +39,44 @@ def mkdir(path):
 def rmdir(path):
     shutil.rmtree(path)
 
+#根据公司名筛选感兴趣数据
+def replaceByFilter(line, file):
+    company = os.path.splitext(file)[0]
+    items = line.split('\t')
+    if company in ['58同城', '爱上租', '赶集网', '365淘房', '青客公寓', '链家', '房天下', '蛋壳公寓', '优客', '诸葛找房', '平安好房', '透明家', '楼盘网', '爱屋吉屋', '城市房产', '房产超市', '透明房产网']:
+        filter = filters[0]
+    elif company in ['依依短租', '魔方生活']:
+        filter = filters[1]
+    elif company in ['嗨住租房']:
+        try:
+            if items[13].isnumeric(): #判断是否价格
+                filter = filters[1]
+            else:
+                filter = filters[2]
+        except Exception:
+            return ""
+    elif company in ['安居客']:
+        try:
+            if items[13].isnumeric(): #判断是否价格
+                filter = filters[0]
+        except Exception:
+            return ""
+    elif company in ['107间']:      
+        try:
+            if items[13].isnumeric(): #判断是否价格
+                filter = filters[1]
+            else:
+                filter = filters[3]
+        except Exception:
+            return ""    
+    else:
+        return ""
+    try:
+        return '\t'.join([items[i] for i in filter]) + '\n'
+    except Exception:
+        return ""
+            
+    
 #按公司名把原始数据拆分，因为不同公司的数据格式略有不同
 def classifyByCompany():
     for fileSource in os.listdir(PATH_SOURCE):
@@ -42,7 +85,6 @@ def classifyByCompany():
         if mkdir(PATH_WORK+os.sep+folder): #工作目录下为每一个原始数据建立一个同名目录
             #TODO: 应加入出错监测机制，如果出错则删掉当前目录
             mkdir(PATH_WORK+os.sep+folder+os.sep+FOLDER_ORIGINAL) #该同名目录下，建立一个子目录，存放按公司名分类的原始数据
-            mkdir(PATH_WORK+os.sep+folder+os.sep+FOLDER_CLEAN) #该同名目录下，建立一个子目录，存放按公司名分类的清洗后数据（只建立目录，不在本函数内清洗）
             with open(PATH_SOURCE+os.sep+fileSource, "r", encoding='UTF-8') as fS:
                 lines = ""
                 companyLast = None
@@ -69,6 +111,26 @@ def classifyByCompany():
                     fW.write(lines)
     print(listCompany)
 
+def cleanByFilters():
+    for dirWork in os.listdir(PATH_WORK):
+        print(dirWork)
+        mkdir(PATH_WORK+os.sep+dirWork+os.sep+FOLDER_CLEAN) #该同名目录下，建立一个子目录，存放按公司名分类的清洗后数据
+        for file in os.listdir(PATH_WORK+os.sep+dirWork+os.sep+FOLDER_ORIGINAL):
+            print('-'*10 + file)
+            if os.path.exists(PATH_WORK+os.sep+dirWork+os.sep+FOLDER_CLEAN+os.sep+file):
+                print('EXIST')
+            else:
+                lines = ""
+                with open(PATH_WORK+os.sep+dirWork+os.sep+FOLDER_ORIGINAL+os.sep+file, "r", encoding='UTF-8') as fO:
+                    for line in fO.readlines():
+                        lines += replaceByFilter(line, file)
+                if lines != "":        
+                    with open(PATH_WORK+os.sep+dirWork+os.sep+FOLDER_CLEAN+os.sep+file+'.unfinish', "a+", encoding='UTF-8') as fC:
+                        fC.write(lines)
+                    os.rename(PATH_WORK+os.sep+dirWork+os.sep+FOLDER_CLEAN+os.sep+file+'.unfinish', PATH_WORK+os.sep+dirWork+os.sep+FOLDER_CLEAN+os.sep+file)    
+
+                        
 # --MAIN--    
 if __name__ == "__main__":
     classifyByCompany()    
+    cleanByFilters()

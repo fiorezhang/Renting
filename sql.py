@@ -9,9 +9,13 @@ import codecs
 if 'Windows' in platform.platform():
     PATH_SOURCE = "E:\BigData\Source"
     PATH_WORK = "E:\BigData\Work"
+    USER = 'root'
+    PSWD = '102038Fs'
 else:
     PATH_SOURCE = '/home/fiore/Projects/BigData/ForFlash/Source'
     PATH_WORK = '/home/fiore/Projects/BigData/ForFlash/Work'
+    USER = 'root'
+    PSWD = '123456'
 
 FOLDER_ORIGINAL = "ORG"
 FOLDER_CLEAN = "CLN"
@@ -24,7 +28,7 @@ def readCsvToSql(filename, database, table):
     with codecs.open(filename=filename, mode='r', encoding='utf-8') as f:
         reader = csv.reader(f, delimiter='\t')
         #head = next(reader) #没有head行
-        conn = pymysql.connect(host='localhost', port=3306, user='root', passwd='123456', db=database, charset='utf8')
+        conn = pymysql.connect(host='localhost', port=3306, user=USER, passwd=PSWD, db=database, charset='utf8')
         cur = conn.cursor()
         sql = 'insert into '+table+' values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
         for item in reader:

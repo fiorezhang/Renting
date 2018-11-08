@@ -2,11 +2,18 @@
 
 import os
 import shutil
+import platform
 
-PATH_SOURCE = "E:\BigData\Source"
-PATH_WORK = "E:\BigData\Work"
+if 'Windows' in platform.platform():
+    PATH_SOURCE = "E:\BigData\Source"
+    PATH_WORK = "E:\BigData\Work"
+else:
+    PATH_SOURCE = '/home/fiore/Projects/BigData/ForFlash/Source'
+    PATH_WORK = '/home/fiore/Projects/BigData/ForFlash/Work'
+
 FOLDER_ORIGINAL = "ORG"
 FOLDER_CLEAN = "CLN"
+TAG_UNFINISH = '.unfinish'
 
 listCompany = ['58同城', '爱上租', '赶集网', '365淘房', '嗨住租房', '安居客', '青客公寓', '链家', '房天下', '蛋壳公寓', '优客', '107间', '依依短租', '魔方生活', '诸葛找房', '平安好房', '透明家', '楼盘网', '爱屋吉屋', '城市房产', '房产超市', '透明房产网']
 filters = [[1, 4, 6, 7, 8, 9, 10, 12, 13, 15, 16, 17, 18, 19, 20],
@@ -114,10 +121,14 @@ def classifyByCompany():
 def cleanByFilters():
     for dirWork in os.listdir(PATH_WORK):
         print(dirWork)
-        mkdir(PATH_WORK+os.sep+dirWork+os.sep+FOLDER_CLEAN) #该同名目录下，建立一个子目录，存放按公司名分类的清洗后数据
+        mkdir(PATH_WORK+os.sep+dirWork+os.sep+FOLDER_CLEAN) #该同名目录下，建立一个子目录，存放按公司名分类的清洗后数据，有可能这个目录已经存在了
+        for file in os.listdir(PATH_WORK+os.sep+dirWork+os.sep+FOLDER_CLEAN):
+            if os.path.splitext(file)[1] == TAG_UNFINISH:
+                print('REMOVE '+file)
+                os.remove(PATH_WORK+os.sep+dirWork+os.sep+FOLDER_CLEAN+os.sep+file)
         for file in os.listdir(PATH_WORK+os.sep+dirWork+os.sep+FOLDER_ORIGINAL):
             print('-'*10 + file)
-            if os.path.exists(PATH_WORK+os.sep+dirWork+os.sep+FOLDER_CLEAN+os.sep+file):
+            if os.path.exists(PATH_WORK+os.sep+dirWork+os.sep+FOLDER_CLEAN+os.sep+file): #避免重复写入相同数据
                 print('EXIST')
             else:
                 lines = ""
@@ -125,18 +136,19 @@ def cleanByFilters():
                     linesRead = fO.readlines()
                     linesWrite = ""
                     for i in range(len(linesRead)):
-                        linesWrite += replaceByFilter(linesRead[i], file)
-                        if i%10000 == 0 and linesWrite != "":     #隔一段写一次
+                        linesWrite += replaceByFilter(linesRead[i], file) #调用函数，将一行原始数据传入，根据文件名（公司名）在函数内做筛选，输出精简后的一行数据
+                        if i%10000 == 0 and linesWrite != "":     #每一行都写入效率太低，隔一段写一次，循环数表示每次缓存的行数
                             print('.', end='')
-                            with open(PATH_WORK+os.sep+dirWork+os.sep+FOLDER_CLEAN+os.sep+file+'.unfinish', "a+", encoding='UTF-8') as fC:
+                            with open(PATH_WORK+os.sep+dirWork+os.sep+FOLDER_CLEAN+os.sep+file+TAG_UNFINISH, "a+", encoding='UTF-8') as fC:
                                 fC.write(linesWrite)
                             linesWrite = ""
                     if linesWrite != "":   #写完最后一笔  
                         print('.', end='')
-                        with open(PATH_WORK+os.sep+dirWork+os.sep+FOLDER_CLEAN+os.sep+file+'.unfinish', "a+", encoding='UTF-8') as fC:
+                        with open(PATH_WORK+os.sep+dirWork+os.sep+FOLDER_CLEAN+os.sep+file+TAG_UNFINISH, "a+", encoding='UTF-8') as fC:
                             fC.write(linesWrite)
                     print('')        
-                    os.rename(PATH_WORK+os.sep+dirWork+os.sep+FOLDER_CLEAN+os.sep+file+'.unfinish', PATH_WORK+os.sep+dirWork+os.sep+FOLDER_CLEAN+os.sep+file)    
+                    #在写入完成前文件名加unfinish后缀，完成后才改成正式名
+                    os.rename(PATH_WORK+os.sep+dirWork+os.sep+FOLDER_CLEAN+os.sep+file+TAG_UNFINISH, PATH_WORK+os.sep+dirWork+os.sep+FOLDER_CLEAN+os.sep+file)    
 
                         
 # --MAIN--    

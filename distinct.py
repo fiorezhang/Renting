@@ -27,13 +27,10 @@ def distinctFromFull(database, tableFull, tableDistinct):
     cur = conn.cursor()
     try:
         cur.execute("ALTER TABLE `"+tableFull+"` ADD id INT AUTO_INCREMENT PRIMARY KEY")
-    except Exception as e:
-        print(e)
-    try:
         cur.execute("ALTER TABLE `"+tableDistinct+"` ADD id INT")
+        cur.execute("INSERT INTO `"+tableDistinct+"` SELECT * FROM `"+tableFull+"` WHERE `id` IN (SELECT MAX(`id`) FROM `"+tableFull+"` WHERE `community` != 'NULL' AND `area` != 'NULL' AND `floor` != 'NULL' GROUP BY `community`, `area`, `floor`")
     except Exception as e:
         print(e)
-    cur.execute("INSERT INTO `"+tableDistinct+"` SELECT * FROM `"+tableFull+"` WHERE `id` IN (SELECT MAX(`id`) FROM `"+tableFull+"` WHERE `community` != 'NULL' AND `area` != 'NULL' AND `floor` != 'NULL' GROUP BY `community`, `area`, `floor`")
 
     conn.commit()
     cur.close()

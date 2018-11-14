@@ -25,10 +25,15 @@ VARCHAR_MAX = 40
 def distinctFromFull(database, tableFull, tableDistinct):
     conn = pymysql.connect(host='localhost', port=3306, user=USER, passwd=PSWD, db=database, charset='utf8')
     cur = conn.cursor()
-    cur.execute("ALTER TABLE "+tableFull+" ADD id INT")
-    cur.execute("ALTER TABLE "+tableDistinct+" ADD id INT")
-    cur.execute("ALTER TABLE "+tableFull+" CHANGE id id INT NOT NULL AUTO_INCREMENT PRIMARY KEY")
-    cur.execute("INSERT INTO "+tableDistinct+" SELECT * FROM "+tableFull+" WHERE `id` IN (SELECT MAX(`id`) FROM "+tableFull+" WHERE `community` != 'NULL' AND `area` != 'NULL' AND `floor` != 'NULL' GROUP BY `community`, `area`, `floor`")
+    try:
+        cur.execute("ALTER TABLE `"+tableFull+"` ADD id INT AUTO_INCREMENT PRIMARY KEY")
+    except Exception as e:
+        print(e)
+    try:
+        cur.execute("ALTER TABLE `"+tableDistinct+"` ADD id INT")
+    except Exception as e:
+        print(e)
+    cur.execute("INSERT INTO `"+tableDistinct+"` SELECT * FROM `"+tableFull+"` WHERE `id` IN (SELECT MAX(`id`) FROM `"+tableFull+"` WHERE `community` != 'NULL' AND `area` != 'NULL' AND `floor` != 'NULL' GROUP BY `community`, `area`, `floor`")
 
     conn.commit()
     cur.close()
@@ -36,7 +41,7 @@ def distinctFromFull(database, tableFull, tableDistinct):
 
 
 if __name__ == '__main__':
-    distinctFromFull(DATABASE,TABLE_FULL, TABLE_DiSTINCT)
+    distinctFromFull(DATABASE, TABLE_FULL, TABLE_DISTINCT)
 
 
 #附上SQL创建表格的代码，需要在执行导入python脚本之前创建好表    

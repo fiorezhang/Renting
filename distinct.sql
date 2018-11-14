@@ -1,7 +1,7 @@
 USE RENTING;
-ALTER TABLE `full` ADD id INT;
-ALTER TABLE `full` CHANGE id id INT NOT NULL AUTO_INCREMENT PRIMARY KEY;
-SELECT COUNT(*) FROM `full` WHERE `id` IN (SELECT MAX(`id`) FROM `full` WHERE `community` != 'NULL' AND `area` != 'NULL' AND `floor` != 'NULL' GROUP BY `community`, `area`, `floor`);
+ALTER TABLE `full` ADD id INT AUTO_INCREMENT PRIMARY KEY;
+SELECT * FROM `full` LIMIT 100;
+#SELECT COUNT(*) FROM `full` WHERE `id` IN (SELECT MAX(`id`) FROM `full` WHERE `community` != 'NULL' AND `area` != 'NULL' AND `floor` != 'NULL' GROUP BY `community`, `area`, `floor`);
 
 CREATE TABLE IF NOT EXISTS `distinct`(
 	`company`    varchar(40),
@@ -22,3 +22,7 @@ CREATE TABLE IF NOT EXISTS `distinct`(
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 ALTER TABLE `distinct` ADD id INT;
 INSERT INTO `distinct` SELECT * FROM `full` WHERE `id` IN (SELECT MAX(`id`) FROM `full` WHERE `community` != 'NULL' AND `area` != 'NULL' AND `floor` != 'NULL' GROUP BY `community`, `area`, `floor`);
+SELECT * FROM `distinct` LIMIT 100;
+
+SHOW VARIABLES LIKE "%_buffer_pool_size%"; 
+SET GLOBAL innodb_buffer_pool_size=268435456;

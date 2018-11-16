@@ -54,6 +54,7 @@ def sk_labels(data, cluster):
     return labels
 
 def plt_draw_1D(data, str_t, str_x):
+    data = [int(data[i]) for i in range(len(data))]
     plt.figure(figsize=(7,7))
     plt.hist(data, bins=100, color='steelblue')
     plt.title(str_t)
@@ -62,6 +63,7 @@ def plt_draw_1D(data, str_t, str_x):
     plt.show()
 
 def plt_draw_1D_s(data, str_t, str_x):
+    data = [int(data[i]) for i in range(len(data))]
     fig, axes = plt.subplots(1, 2)
     sns.distplot(data, ax=axes[0], bins=20, kde=True, rug=True) #kde密度曲线 rug边际毛毯
     sns.kdeplot(data, ax=axes[1], shade=True) #shade阴影
@@ -111,46 +113,53 @@ def plt_draw_bar(data, str_t, str_x, str_y):
     plt.savefig(PATH_CHART+os.sep+str_t+"_BarChart.png")
     plt.show()  
     
-def analysis_company_num():
+def analysis_company_count():
     content = sql_select("`company`, COUNT(*) AS `count_company`", "GROUP BY `company` ORDER BY `count_company` DESC LIMIT 8")
     print(content)
     plt_draw_bar(content, '主要房产公司分布', '公司名', '信息条数')
     
-def analysis_class_num():
+def analysis_class_count():
     content = sql_select("`class`, COUNT(*) AS `count_class`", "GROUP BY `class` ORDER BY `count_class` DESC")
     print(content)
     plt_draw_bar(content, '租赁类型分布', '租赁类型', '信息条数')
     
-def analysis_province_num():
+def analysis_province_count():
     content = sql_select("`province`, COUNT(*) AS `count_province`", "GROUP BY `province` ORDER BY `count_province` DESC")
     print(content)
     plt_draw_bar(content, '省份分布', '省份', '信息条数')
     
-def analysis_city_num():
+def analysis_city_count():
     content = sql_select("`city`, COUNT(*) AS `count_city`", "GROUP BY `city` ORDER BY `count_city` DESC")
     print(content)
     plt_draw_bar(content, '城市分布', '城市', '信息条数')    
 
-def analysis_district_num():
+def analysis_district_count():
     content = sql_select("`district`, COUNT(*) AS `count_district`", "WHERE `district` != 'NULL' GROUP BY `district` ORDER BY `count_district` DESC LIMIT 12")
     print(content)
     plt_draw_bar(content, '最多城区分布', '城区', '信息条数')    
  
-def analysis_direction_num():
+def analysis_direction_count():
     content = sql_select("`direction`, COUNT(*) as `count_direction`", "WHERE `direction` != 'NULL' GROUP BY `direction` ORDER BY `count_direction` DESC LIMIT 11")
     print(content)
     plt_draw_bar(content, '朝向分布', '朝向', '信息条数')    
     
-def analysis_decoration_num():
+def analysis_decoration_count():
     content = sql_select("`decoration`, COUNT(*) AS `count_decoration`", "WHERE `decoration` != 'NULL' GROUP BY `decoration` ORDER BY `count_decoration` DESC LIMIT 6")
     print(content)
     plt_draw_bar(content, '装修分布', '装修情况', '信息条数')    
 
-def analysis_old_num():
+def analysis_old_count():
     content = sql_select("ROUND(CONVERT(`old`, UNSIGNED)/5)*5 AS `num_old`, COUNT(*) AS `count_old`", "WHERE `old` != 'NULL' GROUP BY `num_old` HAVING `num_old` < 2025 AND `num_old` >1950 ORDER BY `num_old` DESC")
     print(content)
     plt_draw_bar(content, '房龄分布', '房龄', '信息条数')    
     
+def analysis_money_num():
+    content = sql_select("ROUND(CONVERT(`money`, UNSIGNED)/1000)*1000 AS `num_money`", "WHERE `money` != 'NULL' ORDER BY RAND() LIMIT 1000")
+    content = np.array(content).flatten()
+    print(content.shape[0])
+    #print(content)
+    plt_draw_1D(content, '房屋价格', '价格区间')
+
 '''    
 def analysis_1D():
     content = sql_select('weight_kg', 'league LIKE "%English Premier%" ') 
@@ -187,11 +196,12 @@ def analysis_3D():
 '''
     
 if __name__ == '__main__':
-    #analysis_company_num()
-    #analysis_class_num()
-    #analysis_province_num()
-    #analysis_city_num()
-    #analysis_district_num()
-    #analysis_direction_num()
-    #analysis_decoration_num()
-    analysis_old_num()
+    #analysis_company_count()
+    #analysis_class_count()
+    #analysis_province_count()
+    #analysis_city_count()
+    #analysis_district_count()
+    #analysis_direction_count()
+    #analysis_decoration_count()
+    #analysis_old_count()
+    analysis_money_num()

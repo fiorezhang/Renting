@@ -64,20 +64,33 @@ def plt_draw_1D(data, str_t, str_x):
 
 def plt_draw_1D_s(data, str_t, str_x):
     data = [int(data[i]) for i in range(len(data))]
-    fig, axes = plt.subplots(1, 2)
-    sns.distplot(data, ax=axes[0], bins=20, kde=True, rug=True) #kde密度曲线 rug边际毛毯
-    sns.kdeplot(data, ax=axes[1], shade=True) #shade阴影
+    #fig, axes = plt.subplots(1, 2)
+    fig, axes = plt.subplots(1, 1)
+    #sns.kdeplot(data, ax=axes[0], shade=True) #shade阴影
+    #sns.distplot(data, ax=axes[1], bins=20, kde=True, rug=True) #kde密度曲线 rug边际毛毯
+    sns.kdeplot(data, ax=axes, shade=True) #shade阴影
     plt.title(str_t)
     plt.xlabel(str_x)
     plt.ylabel('Ratio')
     plt.show()
 
-def plt_draw_1D_c(data_0, data_1, str_t, str_x):
+def plt_draw_1D_c2(data_0, data_1, str_t, str_x):
     sns.kdeplot(data_0, color='r', shade=False) #shade阴影
     sns.kdeplot(data_1, color='b', shade=False) #shade阴影
     plt.title(str_t)
     plt.xlabel(str_x)
     plt.ylabel('Ratio')
+    plt.show()
+
+def plt_draw_1D_c3(data_0, data_1, data_2, str_0, str_1, str_2, str_t, str_x):
+    sns.kdeplot(data_0, color='r', shade=True) #shade阴影
+    sns.kdeplot(data_1, color='g', shade=True) #shade阴影
+    sns.kdeplot(data_2, color='b', shade=True) #shade阴影
+    plt.title(str_t)
+    plt.xlabel(str_x)
+    plt.ylabel('Ratio')
+    plt.legend([str_0, str_1, str_2], loc='upper right', fontsize=10)
+    plt.savefig(PATH_CHART+os.sep+str_t+"_KdeChart.png")
     plt.show()
 
 def plt_draw_2D(data, str_t, str_x, str_y):
@@ -106,13 +119,15 @@ def plt_draw_bar(data, str_t, str_x, str_y):
     X=[str(data[i][0]) for i in range(len(data))]
     Y=[data[i][1] for i in range(len(data))]
     fig = plt.figure()
-    plt.bar(X,Y,0.5,color="green")
+    plt.bar(X,Y,0.5,color="steelblue")
     plt.xlabel(str_x)
     plt.ylabel(str_y)
     plt.title(str_t)
     plt.savefig(PATH_CHART+os.sep+str_t+"_BarChart.png")
     plt.show()  
     
+#########################################################################################
+
 def analysis_company_count():
     content = sql_select("`company`, COUNT(*) AS `count_company`", "GROUP BY `company` ORDER BY `count_company` DESC LIMIT 8")
     print(content)
@@ -154,12 +169,45 @@ def analysis_old_count():
     plt_draw_bar(content, '房龄分布', '房龄', '信息条数')    
     
 def analysis_money_num():
-    content = sql_select("ROUND(CONVERT(`money`, UNSIGNED)/1000)*1000 AS `num_money`", "WHERE `money` != 'NULL' ORDER BY RAND() LIMIT 1000")
+    content = sql_select("ROUND(CONVERT(`money`, UNSIGNED)/1000)*1000 AS `num_money`", "WHERE `money` != 'NULL' HAVING `num_money` < 25000 ORDER BY RAND() LIMIT 1000")
     content = np.array(content).flatten()
     print(content.shape[0])
     #print(content)
-    plt_draw_1D(content, '房屋价格', '价格区间')
+    plt_draw_1D_s(content, '房屋价格', '价格区间')
 
+def analysis_money_num_div():
+    content_0 = sql_select("ROUND(CONVERT(`money`, UNSIGNED)/1000)*1000 AS `num_money`", "WHERE `money` != 'NULL' AND `class` = '出租房' HAVING `num_money` < 50000 ORDER BY RAND() LIMIT 1000")
+    content_0 = np.array(content_0).flatten()
+    print(content_0.shape[0])
+    content_1 = sql_select("ROUND(CONVERT(`money`, UNSIGNED)/1000)*1000 AS `num_money`", "WHERE `money` != 'NULL' AND `class` = '写字楼出租房' HAVING `num_money` < 50000 ORDER BY RAND() LIMIT 1000")
+    content_1 = np.array(content_1).flatten()
+    print(content_1.shape[0])
+    content_2 = sql_select("ROUND(CONVERT(`money`, UNSIGNED)/1000)*1000 AS `num_money`", "WHERE `money` != 'NULL' AND `class` = '商铺出租房' HAVING `num_money` < 50000 ORDER BY RAND() LIMIT 1000")
+    content_2 = np.array(content_2).flatten()
+    print(content_2.shape[0])
+    str_0, str_1, str_2 = '出租房', '写字楼出租房', '商铺出租房'
+    plt_draw_1D_c3(content_0, content_1, content_2, str_0, str_1, str_2, '房屋价格', '价格区间')
+
+def analysis_area_num_div():
+    content_0 = sql_select("ROUND(CONVERT(`area`, UNSIGNED)/10)*10 AS `num_area`", "WHERE `area` != 'NULL' AND `class` = '出租房' HAVING `num_area` < 1000 ORDER BY RAND() LIMIT 1000")
+    content_0 = np.array(content_0).flatten()
+    print(content_0.shape[0])
+    content_1 = sql_select("ROUND(CONVERT(`area`, UNSIGNED)/10)*10 AS `num_area`", "WHERE `area` != 'NULL' AND `class` = '写字楼出租房' HAVING `num_area` < 1000 ORDER BY RAND() LIMIT 1000")
+    content_1 = np.array(content_1).flatten()
+    print(content_0.shape[0])
+    content_2 = sql_select("ROUND(CONVERT(`area`, UNSIGNED)/10)*10 AS `num_area`", "WHERE `area` != 'NULL' AND `class` = '商铺出租房' HAVING `num_area` < 1000 ORDER BY RAND() LIMIT 1000")
+    content_2 = np.array(content_2).flatten()
+    print(content_0.shape[0])
+    str_0, str_1, str_2 = '出租房', '写字楼出租房', '商铺出租房'
+    plt_draw_1D_c3(content_0, content_1, content_2, str_0, str_1, str_2, '房屋面积', '面积区间')
+
+def analysis_money_area_num_div():
+    content_0 = sql_select("ROUND(CONVERT(`area`, UNSIGNED)/10)*10 AS `num_area`, ROUND(CONVERT(`money`, UNSIGNED)/1000)*1000 AS `num_money`", 
+                           "WHERE `money` != 'NULL' AND `area` != 'NULL' AND `class` = '出租房' HAVING `num_area` < 1000 AND `num_money` < 50000 ORDER BY RAND() LIMIT 1000")
+    content_0 = [[int(content_0[i][0]), int(content_0[i][1])] for i in range(len(content_0))]
+    content_0 = np.array(content_0)
+    print(content_0.shape[0])
+    plt_draw_2D(content_0, '房价和面积关系', '面积', '房价')
 '''    
 def analysis_1D():
     content = sql_select('weight_kg', 'league LIKE "%English Premier%" ') 
@@ -196,12 +244,17 @@ def analysis_3D():
 '''
     
 if __name__ == '__main__':
-    #analysis_company_count()
-    #analysis_class_count()
-    #analysis_province_count()
-    #analysis_city_count()
-    #analysis_district_count()
-    #analysis_direction_count()
-    #analysis_decoration_count()
-    #analysis_old_count()
-    analysis_money_num()
+    if False:
+        analysis_company_count()
+        analysis_class_count()
+        analysis_province_count()
+        analysis_city_count()
+        analysis_district_count()
+        analysis_direction_count()
+        analysis_decoration_count()
+        analysis_old_count()
+    if False:
+        analysis_money_num_div()
+        analysis_area_num_div()
+    if True:
+        analysis_money_area_num_div()

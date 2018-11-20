@@ -1,6 +1,7 @@
 #coding=utf-8
 
 import pymysql
+from scipy import stats
 from sklearn.cluster import KMeans
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
@@ -96,9 +97,24 @@ def plt_draw_1D_c3(data_0, data_1, data_2, str_0, str_1, str_2, str_t, str_x):
 def plt_draw_2D(data, str_t, str_x, str_y):
     index = [str_x, str_y]    
     diction = {index[i]:data[:,i] for i in range(2)}
-    sns.JointGrid(str_x, str_y, diction).plot(sns.regplot, sns.distplot)
+    sns.JointGrid(x=str_x, y=str_y, data=diction, space=1).plot(sns.regplot, sns.distplot)
     plt.xlim((None, None))
     plt.ylim((None, None))
+    plt.title(str_t)
+    plt.savefig(PATH_CHART+os.sep+str_t+"_JointChart.png")
+    plt.show()
+
+def plt_draw_2D_s(data, str_t, str_x, str_y):
+    index = [str_x, str_y]    
+    diction = {index[i]:data[:,i] for i in range(2)}
+    g = sns.JointGrid(x=str_x, y=str_y, data=diction, space=0.8)
+    g = g.plot_joint(sns.kdeplot, cmap="Blues_d")
+    plt.xlim((0, None))
+    plt.ylim((0, None))
+    plt.title(str_t)
+    g = g.plot_marginals(sns.kdeplot, shade=True)
+    g = g.annotate(stats.pearsonr, loc='upper left')
+    plt.savefig(PATH_CHART+os.sep+str_t+"_JointChart.png")
     plt.show()
 
 def plt_draw_3D(data, labels, str_t, str_x, str_y, str_z):
@@ -153,6 +169,16 @@ def analysis_district_count():
     print(content)
     plt_draw_bar(content, '最多城区分布', '城区', '信息条数')    
  
+def analysis_month_count():
+    content = sql_select("DATE_FORMAT(CONVERT(`date`, DATE), '%y-%m') AS `num_month`, COUNT(*) AS `count_month`", "WHERE `date` != 'NULL' GROUP BY `num_month` ORDER BY `num_month`")
+    print(content)
+    plt_draw_bar(content, '月份分布', '月份', '信息条数')    
+ 
+def analysis_hour_count():
+    content = sql_select("TIME_FORMAT(CONVERT(`time`, TIME), '%H') AS `num_hour`, COUNT(*) AS `count_hour`", "WHERE `time` != 'NULL' GROUP BY `num_hour` ORDER BY `num_hour`")
+    print(content)
+    plt_draw_bar(content, '时间分布', '小时', '信息条数')    
+ 
 def analysis_direction_count():
     content = sql_select("`direction`, COUNT(*) as `count_direction`", "WHERE `direction` != 'NULL' GROUP BY `direction` ORDER BY `count_direction` DESC LIMIT 11")
     print(content)
@@ -202,12 +228,25 @@ def analysis_area_num_div():
     plt_draw_1D_c3(content_0, content_1, content_2, str_0, str_1, str_2, '房屋面积', '面积区间')
 
 def analysis_money_area_num_div():
-    content_0 = sql_select("ROUND(CONVERT(`area`, UNSIGNED)/10)*10 AS `num_area`, ROUND(CONVERT(`money`, UNSIGNED)/1000)*1000 AS `num_money`", 
-                           "WHERE `money` != 'NULL' AND `area` != 'NULL' AND `class` = '出租房' HAVING `num_area` < 1000 AND `num_money` < 50000 ORDER BY RAND() LIMIT 1000")
+    content_0 = sql_select("ROUND(CONVERT(`area`, UNSIGNED)/1)*1 AS `num_area`, ROUND(CONVERT(`money`, UNSIGNED)/100)*100 AS `num_money`", 
+                           "WHERE `money` != 'NULL' AND `area` != 'NULL' AND `class` = '出租房' HAVING `num_area` < 200 AND `num_money` < 8000 ORDER BY RAND() LIMIT 1000")
     content_0 = [[int(content_0[i][0]), int(content_0[i][1])] for i in range(len(content_0))]
     content_0 = np.array(content_0)
     print(content_0.shape[0])
-    plt_draw_2D(content_0, '房价和面积关系', '面积', '房价')
+    plt_draw_2D_s(content_0, '房价和面积关系-出租房', '面积', '房价')
+    content_1 = sql_select("ROUND(CONVERT(`area`, UNSIGNED)/1)*1 AS `num_area`, ROUND(CONVERT(`money`, UNSIGNED)/100)*100 AS `num_money`", 
+                           "WHERE `money` != 'NULL' AND `area` != 'NULL' AND `class` = '写字楼出租房' HAVING `num_area` < 500 AND `num_money` < 80000 ORDER BY RAND() LIMIT 1000")
+    content_1 = [[int(content_1[i][0]), int(content_1[i][1])] for i in range(len(content_1))]
+    content_1 = np.array(content_1)
+    print(content_1.shape[0])
+    plt_draw_2D_s(content_1, '房价和面积关系-写字楼出租房', '面积', '房价')
+    content_2 = sql_select("ROUND(CONVERT(`area`, UNSIGNED)/1)*1 AS `num_area`, ROUND(CONVERT(`money`, UNSIGNED)/100)*100 AS `num_money`", 
+                           "WHERE `money` != 'NULL' AND `area` != 'NULL' AND `class` = '商铺出租房' HAVING `num_area` < 250 AND `num_money` < 20000 ORDER BY RAND() LIMIT 1000")
+    content_2 = [[int(content_2[i][0]), int(content_2[i][1])] for i in range(len(content_2))]
+    content_2 = np.array(content_2)
+    print(content_2.shape[0])
+    plt_draw_2D_s(content_2, '房价和面积关系-商铺出租房', '面积', '房价')
+
 '''    
 def analysis_1D():
     content = sql_select('weight_kg', 'league LIKE "%English Premier%" ') 
@@ -253,6 +292,9 @@ if __name__ == '__main__':
         analysis_direction_count()
         analysis_decoration_count()
         analysis_old_count()
+    if False:
+        analysis_month_count()
+        analysis_hour_count()
     if False:
         analysis_money_num_div()
         analysis_area_num_div()

@@ -109,13 +109,16 @@ def plt_draw_2D_s(data, str_t, str_x, str_y):
     diction = {index[i]:data[:,i] for i in range(2)}
     g = sns.JointGrid(x=str_x, y=str_y, data=diction, space=0.8)
     g = g.plot_joint(sns.kdeplot, cmap="Blues_d")
+    g = g.plot_joint(sns.regplot, marker="", color="steelblue")
     plt.xlim((0, None))
     plt.ylim((0, None))
     plt.title(str_t)
+    plt.xlabel(str_x)
+    plt.ylabel(str_y)
     g = g.plot_marginals(sns.kdeplot, shade=True)
     g = g.annotate(stats.pearsonr, loc='upper left')
     plt.savefig(PATH_CHART+os.sep+str_t+"_JointChart.png")
-    plt.show()
+    #plt.show()
 
 def plt_draw_3D(data, labels, str_t, str_x, str_y, str_z):
     colors = ['#E4846C', '#19548E', '#E44B4E', '#197D7F', '#0282C9']
@@ -201,7 +204,7 @@ def analysis_money_num():
     #print(content)
     plt_draw_1D_s(content, '房屋价格', '价格区间')
 
-def analysis_money_num_div():
+def analysis_money_num_divbyclass():
     content_0 = sql_select("ROUND(CONVERT(`money`, UNSIGNED)/1000)*1000 AS `num_money`", "WHERE `money` != 'NULL' AND `class` = '出租房' HAVING `num_money` < 50000 ORDER BY RAND() LIMIT 1000")
     content_0 = np.array(content_0).flatten()
     print(content_0.shape[0])
@@ -214,7 +217,7 @@ def analysis_money_num_div():
     str_0, str_1, str_2 = '出租房', '写字楼出租房', '商铺出租房'
     plt_draw_1D_c3(content_0, content_1, content_2, str_0, str_1, str_2, '房屋价格', '价格区间')
 
-def analysis_area_num_div():
+def analysis_area_num_divbyclass():
     content_0 = sql_select("ROUND(CONVERT(`area`, UNSIGNED)/10)*10 AS `num_area`", "WHERE `area` != 'NULL' AND `class` = '出租房' HAVING `num_area` < 1000 ORDER BY RAND() LIMIT 1000")
     content_0 = np.array(content_0).flatten()
     print(content_0.shape[0])
@@ -227,25 +230,27 @@ def analysis_area_num_div():
     str_0, str_1, str_2 = '出租房', '写字楼出租房', '商铺出租房'
     plt_draw_1D_c3(content_0, content_1, content_2, str_0, str_1, str_2, '房屋面积', '面积区间')
 
-def analysis_money_area_num_div():
-    content_0 = sql_select("ROUND(CONVERT(`area`, UNSIGNED)/1)*1 AS `num_area`, ROUND(CONVERT(`money`, UNSIGNED)/100)*100 AS `num_money`", 
-                           "WHERE `money` != 'NULL' AND `area` != 'NULL' AND `class` = '出租房' HAVING `num_area` < 200 AND `num_money` < 8000 ORDER BY RAND() LIMIT 1000")
-    content_0 = [[int(content_0[i][0]), int(content_0[i][1])] for i in range(len(content_0))]
-    content_0 = np.array(content_0)
-    print(content_0.shape[0])
-    plt_draw_2D_s(content_0, '房价和面积关系-出租房', '面积', '房价')
-    content_1 = sql_select("ROUND(CONVERT(`area`, UNSIGNED)/1)*1 AS `num_area`, ROUND(CONVERT(`money`, UNSIGNED)/100)*100 AS `num_money`", 
-                           "WHERE `money` != 'NULL' AND `area` != 'NULL' AND `class` = '写字楼出租房' HAVING `num_area` < 500 AND `num_money` < 80000 ORDER BY RAND() LIMIT 1000")
-    content_1 = [[int(content_1[i][0]), int(content_1[i][1])] for i in range(len(content_1))]
-    content_1 = np.array(content_1)
-    print(content_1.shape[0])
-    plt_draw_2D_s(content_1, '房价和面积关系-写字楼出租房', '面积', '房价')
-    content_2 = sql_select("ROUND(CONVERT(`area`, UNSIGNED)/1)*1 AS `num_area`, ROUND(CONVERT(`money`, UNSIGNED)/100)*100 AS `num_money`", 
-                           "WHERE `money` != 'NULL' AND `area` != 'NULL' AND `class` = '商铺出租房' HAVING `num_area` < 250 AND `num_money` < 20000 ORDER BY RAND() LIMIT 1000")
-    content_2 = [[int(content_2[i][0]), int(content_2[i][1])] for i in range(len(content_2))]
-    content_2 = np.array(content_2)
-    print(content_2.shape[0])
-    plt_draw_2D_s(content_2, '房价和面积关系-商铺出租房', '面积', '房价')
+def analysis_money_area_num_divbyclass():
+    for name_class in ("出租房", "写字楼出租房", "商铺出租房"):
+        content = sql_select("ROUND(CONVERT(`area`, UNSIGNED)/1)*1 AS `num_area`, ROUND(CONVERT(`money`, UNSIGNED)/100)*100 AS `num_money`", 
+                             "WHERE `money` != 'NULL' AND `area` != 'NULL' AND `class` = '"+name_class+"' HAVING `num_area` < 200 AND `num_money` < 20000 ORDER BY RAND() LIMIT 1000")
+        content = [[int(content[i][0]), int(content[i][1])] for i in range(len(content))]
+        content = np.array(content)
+        print(content.shape[0])
+        plt_draw_2D_s(content, '房价和面积关系-'+name_class, '面积', '房价')
+
+def analysis_money_area_num_divbyclass_divbydistrict():
+    for name_class in ("出租房", "写字楼出租房", "商铺出租房"):
+        list_district = sql_select("`district`, COUNT(*) AS `count_district`", "WHERE `class`='"+name_class+"' AND `money`!='NULL' AND `area`!='NULL' AND `floor`!='NULL' GROUP BY `province`, `district` ORDER BY `count_district` DESC LIMIT 20");
+        list_district= np.array(list_district)
+        list_district = list_district[:, 0]
+        for name_district in list_district:
+            content = sql_select("ROUND(CONVERT(`area`, UNSIGNED)/1)*1 AS `num_area`, ROUND(CONVERT(`money`, UNSIGNED)/100)*100 AS `num_money`", 
+                                 "WHERE `money`!='NULL' AND `area`!='NULL' AND `class`='"+name_class+"' AND `district`='"+name_district+"' HAVING `num_area`<200 AND `num_money`<20000 ORDER BY RAND() LIMIT 1000")
+            content = [[int(content[i][0]), int(content[i][1])] for i in range(len(content))]
+            content = np.array(content)
+            print(content.shape[0])
+            plt_draw_2D_s(content, '房价和面积关系-'+name_class+'-'+name_district, '面积', '房价')
 
 '''    
 def analysis_1D():
@@ -296,7 +301,8 @@ if __name__ == '__main__':
         analysis_month_count()
         analysis_hour_count()
     if False:
-        analysis_money_num_div()
-        analysis_area_num_div()
+        analysis_money_num_divbyclass()
+        analysis_area_num_divbyclass()
     if True:
-        analysis_money_area_num_div()
+        analysis_money_area_num_divbyclass()
+        analysis_money_area_num_divbyclass_divbydistrict()

@@ -1,5 +1,5 @@
 USE RENTING;
-SELECT * FROM `full` LIMIT 100;
+SELECT * FROM `full` ORDER BY RAND() LIMIT 1000;
 SELECT COUNT(*) FROM `full`;
 SELECT `company`, COUNT(*) AS `count_company` FROM `full` GROUP BY `company` ORDER BY `count_company` DESC;
 SELECT `class`, COUNT(*) AS `count_class` FROM `full` GROUP BY `class` ORDER BY `count_class` DESC;
@@ -26,7 +26,7 @@ SELECT `floor`, COUNT(*) AS `count_floor` FROM `full` WHERE `floor` != 'NULL' GR
 SELECT COUNT(*) FROM `full` WHERE `decoration` != 'NULL';
 SELECT `decoration`, COUNT(*) AS `count_decoration` FROM `full` WHERE `decoration` != 'NULL' GROUP BY `decoration` ORDER BY `count_decoration` DESC;
 SELECT COUNT(*) FROM `full` WHERE `old` != 'NULL';
-SELECT ROUND(CONVERT(`old`, UNSIGNED)) AS `num_old`, COUNT(*) AS `count_old` FROM `full` WHERE `old` != 'NULL' GROUP BY `num_old` HAVING `num_old` < 2025 AND `num_old` >1950 ORDER BY `num_old` DESC;
+SELECT ROUND(CONVERT(`old`, UNSIGNED)/5)*5 AS `num_old`, COUNT(*) AS `count_old` FROM `full` WHERE `old` != 'NULL' GROUP BY `num_old` HAVING `num_old` < 2025 AND `num_old` >1950 ORDER BY `num_old` DESC;
 
 SELECT COUNT(*) FROM `full` WHERE `money` != 'NULL' AND `community` != 'NULL' AND `floor` != 'NULL';
 SELECT COUNT(*) FROM `full` WHERE `money` != 'NULL' AND `community` != 'NULL' AND `area` != 'NULL';
@@ -36,3 +36,10 @@ SELECT *, COUNT(*) AS `count_repeat` FROM `full` WHERE `money` != 'NULL' AND `co
 SELECT * FROM `full` WHERE `date` = '2018-01-02' AND `community` = '五矿崇文金城';
 SELECT * FROM `full` WHERE `community` = '尹东新村六期' AND `money` = '1460' AND `floor` = '4/18';
 SELECT * FROM `full` WHERE `district` = '九龙坡' AND `community` = '华宇老街印象';
+
+SELECT COUNT(*) FROM `distinct`;
+SELECT COUNT(*) FROM `distinct` WHERE `floor` LIKE '%高%';
+SELECT COUNT(*) FROM `distinct` WHERE `floor` LIKE '%中%';
+SELECT COUNT(*) FROM `distinct` WHERE `floor` LIKE '%低%';
+SELECT LEFT(`floor`, 1) AS `height` FROM `distinct` ORDER BY RAND() LIMIT 100;
+SELECT LEFT(`floor`, 1) AS `height`, COUNT(*) AS `count_height` FROM `distinct` GROUP BY `height` ORDER BY `count_height` DESC;

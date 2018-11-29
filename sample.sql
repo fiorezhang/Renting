@@ -35,18 +35,26 @@ AND `area` != 'NULL'
 #DELETE FROM `sample` WHERE `area` = '';
 ALTER TABLE `sample` MODIFY COLUMN `area` INT;
 #SELECT * FROM `sample` LIMIT 1 OFFSET 10921;
-DELETE FROM `sample` WHERE `area` > 1000;
+DELETE FROM `sample` WHERE `area` > 1000 OR `area` = 0;
 SELECT * FROM `sample` ORDER BY `area` DESC LIMIT 100;
 
 ALTER TABLE `sample` MODIFY COLUMN `money` INT;
 #DELETE FROM `sample` WHERE CONVERT(`money`, DECIMAL) > 100000;
 #SELECT * FROM `sample` LIMIT 1 OFFSET 347334;
-DELETE FROM `sample` WHERE `money` > 100000;
+DELETE FROM `sample` WHERE `money` > 100000 OR `money` = 0;
 SELECT * FROM `sample` ORDER BY `money` DESC LIMIT 100;
-DELETE FROM `sample` WHERE `money`/`area` > 1000;
+SELECT * FROM `sample` WHERE `money`/`area` > 1000 OR `money`/`area` < 1;
+DELETE FROM `sample` WHERE `money`/`area` > 1000 OR `money`/`area` < 1;
 
 SELECT COUNT(*) FROM `sample`; #2160000
-SELECT * FROM `sample` ORDER BY RAND() LIMIT 10;
+SELECT * FROM `sample` ORDER BY RAND() LIMIT 100;
+ALTER TABLE `sample` MODIFY COLUMN `date` DATE;
+ALTER TABLE `sample` MODIFY COLUMN `time` TIME;
+
+SELECT COUNT(*) FROM `sample`;
+SELECT * FROM `sample` ORDER BY `id` LIMIT 10;
+SELECT * FROM `sample` LIMIT 10;
+#DELETE FROM `sample` WHERE 1=1 LIMIT 2170026;
 
 SELECT COUNT(*) FROM `sample` WHERE `decoration` != 'NULL'; #1470000
 SELECT COUNT(*) FROM `sample` WHERE `id` IN (SELECT MAX(`id`) FROM `sample` GROUP BY `community`); #320000
